@@ -5,5 +5,5 @@ public interface PlayerInterface {
 
     public Card draw(Game game);
 
-    public Card takeTurn(Game game);
+    public void takeTurn(Game game);
 }

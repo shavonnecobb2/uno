@@ -17,7 +17,7 @@ public class Player implements PlayerInterface {
     }
 
     @Override
-    public Card takeTurn(Game game) throws EndGameException {
+    public void takeTurn(Game game) throws EndGameException {
         for (var playerCard : getHandCards()) {
             if (game.isLegalCard(playerCard)) {
                 playCard(playerCard, game);
@@ -25,7 +25,7 @@ public class Player implements PlayerInterface {
                 System.out.println(playerCard + " was just played.");
                 System.out.println("--END TURN--");
                 System.out.println("");
-                return playerCard;
+                return;
             }
         }
 
@@ -36,12 +36,7 @@ public class Player implements PlayerInterface {
             playCard(newCard, game);
             System.out.println("--END TURN--");
             System.out.println("");
-            return newCard;
         }
-
-        System.out.println("--END TURN--");
-        System.out.println("");
-        return null;
     }
 
     @Override
