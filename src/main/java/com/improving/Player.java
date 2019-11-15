@@ -12,30 +12,39 @@ public class Player implements PlayerInterface {
     public Player(String name) {
         this.name = name;
     }
+
     public List<Card> getHandCards() {
         return handCards;
     }
 
     @Override
     public void takeTurn(Game game) throws EndGameException {
+        if (handSize() == 1) {
+            System.out.println("UNNNOOOO BIIIITTTCHHHHH");
+        }
+
         for (var playerCard : getHandCards()) {
             if (game.isLegalCard(playerCard)) {
-                playCard(playerCard, game);
                 System.out.println("");
                 System.out.println(playerCard + " was just played.");
                 System.out.println("--END TURN--");
-                System.out.println("");
+                System.out.println("~*~*~*~*~*~*~*~*~*~*~");
+                playCard(playerCard, game);
                 return;
             }
         }
-
         System.out.println("Can't play! Gotta draw!");
+        System.out.println("");
         var newCard = draw(game);
         System.out.println("[" + newCard.toString() + "] was drawn!");
         if (game.isLegalCard(newCard)) {
             playCard(newCard, game);
+            System.out.println("The card was played - HOT DAMN!");
             System.out.println("--END TURN--");
-            System.out.println("");
+            System.out.println("~*~*~*~*~*~*~*~*~*~*~");
+        } else {
+            System.out.println("--END TURN--");
+            System.out.println("~*~*~*~*~*~*~*~*~*~*~");
         }
     }
 
@@ -52,14 +61,23 @@ public class Player implements PlayerInterface {
     }
 
     public void playCard(Card card, Game game) {
-        game.deck.getDiscardPile().add(card);
+        Colors color = declareColor(card, game);
+        game.playCard(card, color);
         handCards.remove(card);
     }
 
-    public void sayUNO() {
-        if (handSize() == 1) {
-            System.out.println("UNNNOOOO");
+
+    public Colors declareColor(Card card, Game game) {
+        var declaredColor = card.getColor();
+        if (card.getColor().toString().equals("Wild")) {
+            List<Colors> randomColors = new ArrayList<>();
+            randomColors.add(Colors.Red);
+            randomColors.add(Colors.Blue);
+            randomColors.add(Colors.Green);
+            randomColors.add(Colors.Yellow);
+            declaredColor = randomColors.get(0);
         }
+        return declaredColor;
     }
 
     @Override
