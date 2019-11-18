@@ -7,7 +7,7 @@ import java.util.List;
 
 
 @Component
-public class Deck {
+public class Deck implements IDeck {
     private List<Card> drawPile = new ArrayList<>();
     private List<Card> discardPile = new ArrayList<>();
 
@@ -62,7 +62,7 @@ public class Deck {
         }
     }
 
-    public int getDeckSize() {
+    public int getDrawPileSize() {
         return drawPile.size();
     }
 

@@ -1,6 +1,6 @@
 package com.improving;
 
-public interface PlayerInterface {
+public interface IPlayer {
     public int handSize();
 
     public Card draw(Game game);

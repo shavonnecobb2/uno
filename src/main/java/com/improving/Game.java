@@ -3,19 +3,23 @@ package com.improving;
 import com.improving.exceptions.EndGameException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
-public class Game {
+public class Game implements IGame {
     public Deck deck = new Deck();
     private List<Player> players = new ArrayList<>();
     private Player player;
+    private TopCard topCard = new TopCard();
     private int numPlayers;
     private int currentPlayer = 0;
     public int turnDirection = 1;
     public int turnEngine = 0;
     private boolean gameInProgress = true;
+
+    public TopCard getTopCard() {
+        return topCard;
+    }
 
     public List<Player> getPlayers() {
         return players;
@@ -24,28 +28,21 @@ public class Game {
 
     public void play() {
         Player playerOne = new Player("Shavonne");
-        Player playerTwo = new Player("James");
-        Player playerThree = new Player("Little Kitty");
-        Player playerFour = new Player("Smokie");
         players.add(playerOne);
-        players.add(playerTwo);
-        players.add(playerThree);
-        players.add(playerFour);
         numPlayers = players.size();
 
         System.out.println(players);
-        var firstCard = deck.draw();
-        deck.getDiscardPile().add(firstCard);
-        System.out.println("Top Card on Discard Pile: " + firstCard.toString());
+        arrangeStartingDeck(deck);
+        System.out.println("Top Card on Discard Pile: " + topCard.toString());
 
         for (var player : players) {
             for (int i = 0; i < 7; i++) {
-                player.getHandCards().add(deck.draw());
+                player.getHandCards().add(this.draw());
             }
         }
 
-        if (hasAction(topCard())) {
-            executeCardActionForFirstPerson(topCard(), this);
+        if (hasAction(topCard.getCard())) {
+            executeCardActionForFirstPerson(topCard.getCard(), this);
         }
 
         while (gameInProgress) {
@@ -76,17 +73,48 @@ public class Game {
 
     }
 
-    public boolean isLegalCard(Card playerCard) {
-        if (topCard().getColor().equals(playerCard.getColor())
-                || topCard().getFace().equals(playerCard.getFace())
+    public Card draw() {
+        return deck.draw();
+    }
+
+    private void arrangeStartingDeck(Deck deck) {
+        this.deck = deck;
+        deck.shuffle(deck.getDrawPile());
+        Card firstCard = deck.draw();
+        setTopCard(firstCard, firstCard.getColor());
+        deck.getDiscardPile().add(topCard.getCard());
+    }
+
+    private void setTopCard(Card card, Colors declaredColor) {
+        topCard.setCard(card);
+
+        if (declaredColor.toString().equalsIgnoreCase("Wild")) {
+            Random random = new Random();
+            int number = random.nextInt(100000)%4;
+            if (number == 0) {
+                declaredColor = Colors.Red;
+            } else if (number == 1){
+                declaredColor = Colors.Green;
+            } else if (number == 2) {
+                declaredColor = Colors.Blue;
+            } else if (number == 3) {
+                declaredColor = Colors.Yellow;
+            }
+        }
+        topCard.setDeclaredColor(declaredColor);
+    }
+
+    public boolean isPlayable(Card playerCard) {
+        if (topCard.getCard().getColor().equals(playerCard.getColor())
+                || topCard.getCard().getFace().equals(playerCard.getFace())
                 || playerCard.getColor().equals(Colors.Wild)
-                || topCard().getColor().equals(Colors.Wild)) {
+                || topCard.getCard().getColor().equals(Colors.Wild)) {
             return true;
         }
         return false;
     }
 
-    public Boolean hasAction(Card card) {
+    private Boolean hasAction(Card card) {
         if (card.getFace().toString().equalsIgnoreCase("Draw_4")) {
             return true;
         } else if (card.getFace().toString().equalsIgnoreCase("Draw_2")) {
@@ -101,8 +129,8 @@ public class Game {
 
     }
 
-    public void executeCardAction(Card card, Game game) {
-        if (topCard().getFace().equals(Faces.Draw_2)) {
+    private void executeCardAction(Card card, Game game) {
+        if (topCard.getCard().getFace().equals(Faces.Draw_2)) {
             if (turnEngine <= 0) {
                 turnEngine = turnEngine + numPlayers;
             }
@@ -114,7 +142,7 @@ public class Game {
             turnEngine = turnEngine + turnDirection;
             System.out.println("--Player " + players.get(nextPlayerIndex).toString() + " had to DRAW 2 and skip their turn - OUCH--");
             System.out.println("");
-        } else if (topCard().getFace().equals(Faces.Draw_4)) {
+        } else if (topCard.getCard().getFace().equals(Faces.Draw_4)) {
             if (turnEngine <= 0) {
                 turnEngine = turnEngine + numPlayers;
             }
@@ -129,7 +157,7 @@ public class Game {
             System.out.println("--Player " + players.get(nextPlayerIndex).toString() + " had to DRAW 4 and skip their turn - OUCH--");
             System.out.println("");
 
-        } else if (topCard().getFace().equals(Faces.Skip)) {
+        } else if (topCard.getCard().getFace().equals(Faces.Skip)) {
             if (turnEngine <= 0) {
                 turnEngine = turnEngine + numPlayers;
             }
@@ -138,7 +166,7 @@ public class Game {
             System.out.println("--Player " + players.get(nextPlayerIndex).toString() + " was skipped--");
             System.out.println("");
             turnEngine = turnEngine + turnDirection;
-        } else if (topCard().getFace().equals(Faces.Reverse)) {
+        } else if (topCard.getCard().getFace().equals(Faces.Reverse)) {
             turnDirection = turnDirection * (-1);
             System.out.println("--TURN ORDER WAS REVERSED--");
             System.out.println("");
@@ -146,8 +174,8 @@ public class Game {
 
     }
 
-    public void executeCardActionForFirstPerson(Card card, Game game) {
-        if (topCard().getFace().equals(Faces.Draw_2)) {
+    private void executeCardActionForFirstPerson(Card card, Game game) {
+        if (topCard.getCard().getFace().equals(Faces.Draw_2)) {
             this.player = players.get(0);
             player.draw(game);
             player.draw(game);
@@ -155,7 +183,7 @@ public class Game {
             turnEngine = turnEngine + turnDirection;
             System.out.println("--Player " + player.toString() + " had to DRAW 2 and skip their turn - OUCH--");
             System.out.println("");
-        } else if (topCard().getFace().equals(Faces.Draw_4)) {
+        } else if (topCard.getCard().getFace().equals(Faces.Draw_4)) {
             this.player = players.get(0);
             player.draw(game);
             player.draw(game);
@@ -165,26 +193,62 @@ public class Game {
             turnEngine = turnEngine + turnDirection;
             System.out.println("--Player " + player.toString() + " had to DRAW 4 and skip their turn - OUCH--");
             System.out.println("");
-        } else if (topCard().getFace().equals(Faces.Skip)) {
+        } else if (topCard.getCard().getFace().equals(Faces.Skip)) {
             this.player = players.get(0);
             System.out.println("--Player " + player.toString() + " was skipped--");
             System.out.println("");
             turnEngine = turnEngine + turnDirection;
-        } else if (topCard().getFace().equals(Faces.Reverse)) {
+        } else if (topCard.getCard().getFace().equals(Faces.Reverse)) {
             turnDirection = turnDirection * (-1);
             System.out.println("--TURN ORDER WAS REVERSED--");
             System.out.println("");
         }
     }
 
-    public void playCard(Card card, Colors declaredColor) {
+    public void playCard(Card card, Optional<Colors> declaredColor) {
         deck.getDiscardPile().add(card);
+        if (declaredColor.isPresent() == false) {
+            if (card.getColor().ordinal() != 5) {
+                topCard.setDeclaredColor(card.getColor());
+            } else {
+                topCard.setDeclaredColor(forcePickValidDeclaredColor());
+                topCard.setCard(card);
+            }
+        } else if (declaredColor.isPresent()) {
+            if (isValidDeclaredColor(declaredColor) == false) {
+                declaredColor = Optional.ofNullable(forcePickValidDeclaredColor());
+            }
+            topCard.setCard(card);
+            topCard.setDeclaredColor(declaredColor.orElseThrow());
+        }
         if (hasAction(card)) {
             executeCardAction(card, this);
         }
     }
 
-    public Card topCard() {
+    private boolean isValidDeclaredColor(Optional<Colors> declaredColor) {
+        boolean isValid = false;
+        Colors[] validColor = {Colors.Red, Colors.Green, Colors.Yellow, Colors.Blue};
+        for (Colors color : validColor) {
+            if (declaredColor.get().ordinal() == color.ordinal()) {
+                isValid = true;
+            }
+        }
+        return isValid;
+    }
+
+    private Colors forcePickValidDeclaredColor() {
+        List<Colors> randomColors = new ArrayList<>();
+        randomColors.add(Colors.Blue);
+        randomColors.add(Colors.Red);
+        randomColors.add(Colors.Green);
+        randomColors.add(Colors.Yellow);
+        Collections.shuffle(randomColors);
+        System.out.println("Invalid color declaration - random color chosen instead.");
+        return randomColors.get(0);
+    }
+
+    private Card topCard() {
         return deck.getDiscardPile().get(deck.getDiscardPile().size() - 1);
     }
 }

@@ -3,9 +3,11 @@ package com.improving;
 import com.improving.exceptions.EndGameException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-public class Player implements PlayerInterface {
+public class Player implements IPlayer {
     private String name;
     private List<Card> handCards = new ArrayList<>();
 
@@ -24,7 +26,7 @@ public class Player implements PlayerInterface {
         }
 
         for (var playerCard : getHandCards()) {
-            if (game.isLegalCard(playerCard)) {
+            if (game.isPlayable(playerCard)) {
                 System.out.println("");
                 System.out.println(playerCard + " was just played.");
                 System.out.println("--END TURN--");
@@ -37,7 +39,7 @@ public class Player implements PlayerInterface {
         System.out.println("");
         var newCard = draw(game);
         System.out.println("[" + newCard.toString() + "] was drawn!");
-        if (game.isLegalCard(newCard)) {
+        if (game.isPlayable(newCard)) {
             playCard(newCard, game);
             System.out.println("The card was played - HOT DAMN!");
             System.out.println("--END TURN--");
@@ -55,15 +57,15 @@ public class Player implements PlayerInterface {
 
     @Override
     public Card draw(Game game) {
-        var drawnCard = game.deck.draw();
+        var drawnCard = game.draw();
         handCards.add(drawnCard);
         return drawnCard;
     }
 
     public void playCard(Card card, Game game) {
-        Colors color = declareColor(card, game);
-        game.playCard(card, color);
+        Colors declaredColor = declareColor(card, game);
         handCards.remove(card);
+        game.playCard(card, Optional.ofNullable(declaredColor));
     }
 
 
@@ -75,7 +77,30 @@ public class Player implements PlayerInterface {
             randomColors.add(Colors.Blue);
             randomColors.add(Colors.Green);
             randomColors.add(Colors.Yellow);
-            declaredColor = randomColors.get(0);
+//            declaredColor = randomColors.get(0);
+            boolean declaredColorinHand = false;
+            int numWildColorCardsInHand = 0;
+
+            if (card.getColor().equals(Colors.Wild)) {
+                while (declaredColorinHand) {
+                    Collections.shuffle(randomColors);
+                    for (Card c : handCards) {
+                        if (card.getColor().equals(randomColors.get(0))) {
+                            declaredColorinHand = true;
+                            declaredColor = card.getColor();
+                            break;
+                        }
+                        if (card.getColor().equals(Colors.Wild)) {
+                            numWildColorCardsInHand++;
+                        }
+                        if (numWildColorCardsInHand == handSize()) {
+                            Collections.shuffle(randomColors);
+                            declaredColorinHand = true;
+                            declaredColor = randomColors.get(0);
+                        }
+                    }
+                }
+            }
         }
         return declaredColor;
     }
