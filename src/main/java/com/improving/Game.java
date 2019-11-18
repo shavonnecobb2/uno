@@ -17,14 +17,6 @@ public class Game implements IGame {
     public int turnEngine = 0;
     private boolean gameInProgress = true;
 
-    public TopCard getTopCard() {
-        return topCard;
-    }
-
-    public List<Player> getPlayers() {
-        return players;
-    }
-
 
     public void play() {
         Player playerOne = new Player("Shavonne");
@@ -246,10 +238,6 @@ public class Game implements IGame {
         Collections.shuffle(randomColors);
         System.out.println("Invalid color declaration - random color chosen instead.");
         return randomColors.get(0);
-    }
-
-    private Card topCard() {
-        return deck.getDiscardPile().get(deck.getDiscardPile().size() - 1);
     }
 }
 
