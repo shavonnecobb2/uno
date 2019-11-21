@@ -62,10 +62,12 @@ public class Deck implements IDeck {
         }
     }
 
+    @Override
     public int getDrawPileSize() {
         return drawPile.size();
     }
 
+    @Override
     public List<Card> getDiscardPile() {
         return discardPile;
     }

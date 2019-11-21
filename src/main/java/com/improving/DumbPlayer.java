@@ -6,63 +6,75 @@ import java.util.List;
 import java.util.Optional;
 
 public class DumbPlayer implements IPlayer {
-    private String name;
-    private List<Card> handCards = new ArrayList<>();
-
-    public DumbPlayer(List<Card> handCards) {
-        this.handCards = handCards;
+    private List<Card> hand = new ArrayList<>();
+    private final Logger logger;
+    
+    public DumbPlayer(Logger logger, List<Card> handCards) {
+        this.hand = handCards;
+        this.logger = logger;
     }
 
     public List<Card> getHandCards() {
-        return handCards;
+        return hand;
     }
 
     @Override
     public void takeTurn(IGame iGame) {
         if (handSize() == 1) {
-            System.out.println("UNNNOOOO BIIIITTTCHHHHH");
+            logger.println("UNNNOOOO BIIIITTTCHHHHH");
         }
 
         for (var playerCard : getHandCards()) {
             if (iGame.isPlayable(playerCard)) {
-                System.out.println("");
-                System.out.println(playerCard + " was just played.");
-                System.out.println("--END TURN--");
-                System.out.println("~*~*~*~*~*~*~*~*~*~*~");
+                logger.println("");
+                logger.println(playerCard + " was just played.");
+                logger.println("--END TURN--");
+                logger.println("~*~*~*~*~*~*~*~*~*~*~");
                 playCard(playerCard, iGame);
                 return;
             }
         }
-        System.out.println("Can't play! Gotta draw!");
-        System.out.println("");
+        logger.println("Can't play! Gotta draw!");
+        logger.println("");
         var newCard = draw(iGame);
-        System.out.println("[" + newCard.toString() + "] was drawn!");
+        logger.println("[" + newCard.toString() + "] was drawn!");
         if (iGame.isPlayable(newCard)) {
             playCard(newCard, iGame);
-            System.out.println("The card was played - HOT DAMN!");
-            System.out.println("--END TURN--");
-            System.out.println("~*~*~*~*~*~*~*~*~*~*~");
+            logger.println("The card was played - HOT DAMN!");
+            logger.println("--END TURN--");
+            logger.println("~*~*~*~*~*~*~*~*~*~*~");
         } else {
-            System.out.println("--END TURN--");
-            System.out.println("~*~*~*~*~*~*~*~*~*~*~");
+            logger.println("--END TURN--");
+            logger.println("~*~*~*~*~*~*~*~*~*~*~");
         }
     }
 
     @Override
+    public String getName() {
+        return "Dummy 1";
+    }
+
+    @Override
     public int handSize() {
-        return handCards.size();
+        return hand.size();
+    }
+
+    @Override
+    public void newHand(List<Card> cards) {
+        this.hand.clear();
+        this.hand.addAll(cards);
     }
 
     @Override
     public Card draw(IGame iGame) {
         var drawnCard = iGame.draw();
-        handCards.add(drawnCard);
+        hand.add(drawnCard);
         return drawnCard;
     }
 
     private void playCard(Card card, IGame iGame) {
         Colors declaredColor = declareColor(card, iGame);
-        handCards.remove(card);
+        hand.remove(card);
         iGame.playCard(card, Optional.ofNullable(declaredColor));
     }
 
@@ -81,8 +93,7 @@ public class DumbPlayer implements IPlayer {
 
             if (card.getColor().equals(Colors.Wild)) {
                 while (declaredColorinHand) {
-                    Collections.shuffle(randomColors);
-                    for (Card c : handCards) {
+                    for (Card c : hand) {
                         if (card.getColor().equals(randomColors.get(0))) {
                             declaredColorinHand = true;
                             declaredColor = card.getColor();

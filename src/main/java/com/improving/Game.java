@@ -15,20 +15,32 @@ public class Game implements IGame {
     private int currentPlayer = 0;
     public int turnDirection = 1;
     public int turnEngine = 0;
-    private boolean gameInProgress = true;
+    private final Logger logger;
+    private IPlayer winningPlayer = null;
+
+    public Game(Logger logger) {
+        this.logger = logger;
+    }
+
+    public IPlayer getWinningPlayer() {
+        return winningPlayer;
+    }
 
     public void play() {
-        List<Card> startingHand = getStartingHand(deck);
-        IPlayer shavonne = new ShavonnePlayer(startingHand);
-        IPlayer dummy = new DumbPlayer(startingHand);
+        boolean gameInProgress = true;
+        this.deck = new Deck();
+        this.winningPlayer = null;
+        players.clear();
+        IPlayer shavonne = new ShavonnePlayer(logger, getStartingHand(deck));
+        IPlayer dummy = new DumbPlayer(logger, getStartingHand(deck));
+        IPlayer dummy2 = new DumbPlayer2(logger, getStartingHand(deck));
         players.add(shavonne);
         players.add(dummy);
+        players.add(dummy2);
         numPlayers = players.size();
 
         arrangeStartingDeck(deck);
-        System.out.println("Top Card on Discard Pile: " + topCard.toString());
-
-        System.out.println(players);
+        logger.println("Top Card on Discard Pile: " + topCard.toString());
 
         if (hasAction(topCard.getCard())) {
             executeCardActionForFirstPerson(topCard.getCard(), this);
@@ -41,13 +53,14 @@ public class Game implements IGame {
             }
             currentPlayer = turnEngine % numPlayers;
             this.player = players.get(currentPlayer);
-            System.out.println("Current player is : " + player + " and they have " + player.handSize() + " cards!");
+            logger.println("Current player is : " + player + " and they have " + player.handSize() + " cards!");
 
             player.takeTurn(this);
 
-                if (player.handSize() == 0) {
-                    System.out.println("Congratulations " + player + "! You just won!");
-                    gameInProgress = false;
+            if (player.handSize() == 0) {
+                this.winningPlayer = player;
+                logger.println("Congratulations " + player + "! You just won!");
+                gameInProgress = false;
 
             }
             turnEngine = turnEngine + turnDirection;
@@ -58,6 +71,12 @@ public class Game implements IGame {
     @Override
     public Card draw() {
         return deck.draw();
+    }
+
+    @Override
+    public IDeck getDeckInfo() {
+        IDeck deckInfo = this.deck;
+        return deckInfo;
     }
 
     private void arrangeStartingDeck(Deck deck) {
@@ -133,8 +152,8 @@ public class Game implements IGame {
             players.get(nextPlayerIndex).draw(game);
             //this skips the next player
             turnEngine = turnEngine + turnDirection;
-            System.out.println("--Player " + players.get(nextPlayerIndex).toString() + " had to DRAW 2 and skip their turn - OUCH--");
-            System.out.println("");
+            logger.println("--Player " + players.get(nextPlayerIndex).toString() + " had to DRAW 2 and skip their turn - OUCH--");
+            logger.println("");
         } else if (topCard.getCard().getFace().equals(Faces.Draw_4)) {
             if (turnEngine <= 0) {
                 turnEngine = turnEngine + numPlayers;
@@ -147,21 +166,21 @@ public class Game implements IGame {
             players.get(nextPlayerIndex).draw(game);
             //this skips the next player
             turnEngine = turnEngine + turnDirection;
-            System.out.println("--Player " + players.get(nextPlayerIndex).toString() + " had to DRAW 4 and skip their turn - OUCH--");
-            System.out.println("");
+            logger.println("--Player " + players.get(nextPlayerIndex).toString() + " had to DRAW 4 and skip their turn - OUCH--");
+            logger.println("");
         } else if (topCard.getCard().getFace().equals(Faces.Skip)) {
             if (turnEngine <= 0) {
                 turnEngine = turnEngine + numPlayers;
             }
             var nextPlayerIndex = (turnEngine + turnDirection) % numPlayers;
             players.get(nextPlayerIndex);
-            System.out.println("--Player " + players.get(nextPlayerIndex).toString() + " was skipped--");
-            System.out.println("");
+            logger.println("--Player " + players.get(nextPlayerIndex).toString() + " was skipped--");
+            logger.println("");
             turnEngine = turnEngine + turnDirection;
         } else if (topCard.getCard().getFace().equals(Faces.Reverse)) {
             turnDirection = turnDirection * (-1);
-            System.out.println("--TURN ORDER WAS REVERSED--");
-            System.out.println("");
+            logger.println("--TURN ORDER WAS REVERSED--");
+            logger.println("");
         }
 
     }
@@ -173,8 +192,8 @@ public class Game implements IGame {
             player.draw(game);
             //this skips the next player
             turnEngine = turnEngine + turnDirection;
-            System.out.println("--Player " + player.toString() + " had to DRAW 2 and skip their turn - OUCH--");
-            System.out.println("");
+            logger.println("--Player " + player.toString() + " had to DRAW 2 and skip their turn - OUCH--");
+            logger.println("");
         } else if (topCard.getCard().getFace().equals(Faces.Draw_4)) {
             this.player = players.get(0);
             player.draw(game);
@@ -183,20 +202,20 @@ public class Game implements IGame {
             player.draw(game);
             //this skips the next player
             turnEngine = turnEngine + turnDirection;
-            System.out.println("--Player " + player.toString() + " had to DRAW 4 and skip their turn - OUCH--");
-            System.out.println("");
+            logger.println("--Player " + player.toString() + " had to DRAW 4 and skip their turn - OUCH--");
+            logger.println("");
         } else if (topCard.getCard().getFace().equals(Faces.Skip)) {
             this.player = players.get(0);
-            System.out.println("--Player " + player.toString() + " was skipped--");
-            System.out.println("");
+            logger.println("--Player " + player.toString() + " was skipped--");
+            logger.println("");
             turnEngine = turnEngine + turnDirection;
         } else if (topCard.getCard().getFace().equals(Faces.Reverse)) {
             turnDirection = turnDirection * (-1);
             if (players.size() == 2) {
                 turnEngine = turnEngine + turnDirection;
             }
-            System.out.println("--TURN ORDER WAS REVERSED--");
-            System.out.println("");
+            logger.println("--TURN ORDER WAS REVERSED--");
+            logger.println("");
         }
     }
 
@@ -240,7 +259,7 @@ public class Game implements IGame {
         randomColors.add(Colors.Green);
         randomColors.add(Colors.Yellow);
         Collections.shuffle(randomColors);
-        System.out.println("Invalid color declaration - random color chosen instead.");
+        logger.println("Invalid color declaration - random color chosen instead.");
         return randomColors.get(0);
     }
 

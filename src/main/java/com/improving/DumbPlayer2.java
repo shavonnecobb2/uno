@@ -1,13 +1,15 @@
 package com.improving;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
-public class ShavonnePlayer implements IPlayer {
+public class DumbPlayer2 implements IPlayer {
     private List<Card> hand = new ArrayList<>();
     private final Logger logger;
 
-    public ShavonnePlayer(Logger logger, List<Card> handCards) {
+    public DumbPlayer2(Logger logger, List<Card> handCards) {
         this.hand = handCards;
         this.logger = logger;
     }
@@ -28,9 +30,7 @@ public class ShavonnePlayer implements IPlayer {
                 logger.println(playerCard + " was just played.");
                 logger.println("--END TURN--");
                 logger.println("~*~*~*~*~*~*~*~*~*~*~");
-                if (attackAttack(playerCard, iGame)) {
-                    playCard(playerCard, iGame);
-                } else playCard(playerCard, iGame);
+                playCard(playerCard, iGame);
                 return;
             }
         }
@@ -51,7 +51,7 @@ public class ShavonnePlayer implements IPlayer {
 
     @Override
     public String getName() {
-        return "Shavonne";
+        return "Dummy 2";
     }
 
     @Override
@@ -81,7 +81,6 @@ public class ShavonnePlayer implements IPlayer {
 
     private Colors declareColor(Card card, IGame iGame) {
         var declaredColor = card.getColor();
-
         if (card.getColor().toString().equals("Wild")) {
             List<Colors> randomColors = new ArrayList<>();
             randomColors.add(Colors.Red);
@@ -94,9 +93,8 @@ public class ShavonnePlayer implements IPlayer {
 
             if (card.getColor().equals(Colors.Wild)) {
                 while (declaredColorinHand) {
-                    Collections.shuffle(randomColors);
                     for (Card c : hand) {
-                        if (card.getColor().equals(randomColors.get(0)) && card.getFace().getValue() == 20) {
+                        if (card.getColor().equals(randomColors.get(0))) {
                             declaredColorinHand = true;
                             declaredColor = card.getColor();
                             break;
@@ -115,31 +113,4 @@ public class ShavonnePlayer implements IPlayer {
         }
         return declaredColor;
     }
-
-    private boolean attackAttack(Card playerCard, IGame iGame) {
-        if (iGame.getNextPlayer().handSize() == 1) {
-            return playerCard.getFace().getValue() == 20 || playerCard.getFace().getValue() == 50;
-        }
-        if (iGame.getDeckInfo().getDiscardPile().get(iGame.getDeckInfo().getDiscardPile().size() - 1).getColor().equals(Colors.Wild)) {
-            return playerCard.getFace().getValue() == 20 || playerCard.getFace().getValue() == 50;
-        }
-        if (iGame.getDeckInfo().getDiscardPile().get(iGame.getDeckInfo().getDiscardPile().size() - 1).getFace().getValue() == 20
-                || iGame.getDeckInfo().getDiscardPile().get(iGame.getDeckInfo().getDiscardPile().size() - 1).getFace().getValue() == 50) {
-            return playerCard.getFace().getValue() == 20
-                    || playerCard.getFace().getValue() == 50
-                    || playerCard.getColor().equals(Colors.Wild);
-        }
-        if (iGame.getPreviousPlayer().handSize() == 1) {
-            return !playerCard.getFace().equals(Faces.Reverse);
-        }
-        if (handSize() <= 3) {
-            return playerCard.getFace().getValue() == 20 || playerCard.getFace().getValue() == 50;
-        }
-        if (iGame.getNextNextPlayer().handSize() <= 5) {
-            return playerCard.getFace().getValue() != 20 || playerCard.getFace().getValue() != 50;
-        }
-
-        return false;
-    }
 }
-

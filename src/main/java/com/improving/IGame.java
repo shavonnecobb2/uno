@@ -12,12 +12,14 @@ public interface IGame {
 
     public List<IPlayerInfo> getPlayerInfo();
 
-    public IPlayer getNextPlayer();
+    public IPlayerInfo getNextPlayer();
 
-    public IPlayer getPreviousPlayer();
+    public IPlayerInfo getPreviousPlayer();
 
-    public IPlayer getNextNextPlayer();
+    public IPlayerInfo getNextNextPlayer();
 
+    public IDeck getDeckInfo();
 
+    public void play();
 }
 
